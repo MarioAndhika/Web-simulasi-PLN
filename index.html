@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Simulasi Penyambungan Kabel ke Meteran PLN</title>
   <style>
     body {
@@ -57,7 +57,7 @@
     button {
       padding: 10px 20px;
       font-size: 16px;
-      margin-right: 10px;
+      margin: 5px;
       cursor: pointer;
     }
     #lampu {
@@ -80,33 +80,15 @@
 
   <div id="container">
     <div class="panel" id="source">
-      <div>
-        <div class="point" data-side="source" data-label="L">L</div>
-        <div class="label">Sumber L (Line)</div>
-      </div>
-      <div>
-        <div class="point" data-side="source" data-label="N">N</div>
-        <div class="label">Sumber N (Netral)</div>
-      </div>
-      <div>
-        <div class="point" data-side="source" data-label="G">G</div>
-        <div class="label">Sumber G (Ground)</div>
-      </div>
+      <div><div class="point" data-side="source" data-label="L">L</div><div class="label">Sumber L</div></div>
+      <div><div class="point" data-side="source" data-label="N">N</div><div class="label">Sumber N</div></div>
+      <div><div class="point" data-side="source" data-label="G">G</div><div class="label">Sumber G</div></div>
     </div>
 
     <div class="panel" id="meter">
-      <div>
-        <div class="point" data-side="meter" data-label="L">L</div>
-        <div class="label">Meteran L (Line)</div>
-      </div>
-      <div>
-        <div class="point" data-side="meter" data-label="N">N</div>
-        <div class="label">Meteran N (Netral)</div>
-      </div>
-      <div>
-        <div class="point" data-side="meter" data-label="G">G</div>
-        <div class="label">Meteran G (Ground)</div>
-      </div>
+      <div><div class="point" data-side="meter" data-label="L">L</div><div class="label">Meteran L</div></div>
+      <div><div class="point" data-side="meter" data-label="N">N</div><div class="label">Meteran N</div></div>
+      <div><div class="point" data-side="meter" data-label="G">G</div><div class="label">Meteran G</div></div>
     </div>
 
     <canvas id="canvas"></canvas>
@@ -115,6 +97,9 @@
   <div id="controls">
     <button onclick="resetConnections()">🔁 Reset Sambungan</button>
     <button onclick="validateConnections()">✅ Periksa Sambungan</button>
+    <button onclick="startQuiz()">🎯 Latihan Kabel L</button>
+    <button onclick="validateQuizConnection()">🔍 Cek Latihan</button>
+    <button onclick="startRandomQuiz()">🎲 Kuis Kabel Acak</button>
   </div>
 
   <div id="lampu">
@@ -130,6 +115,10 @@
 
     let firstClick = null;
     const connections = [];
+    let quizMode = false;
+    let currentTarget = "";
+
+    const clickSound = new Audio("https://www.soundjay.com/button/sounds/button-16.mp3");
 
     function getCenterPosition(el) {
       const rect = el.getBoundingClientRect();
@@ -146,8 +135,8 @@
       connections.forEach(conn => {
         const start = getCenterPosition(conn[0]);
         const end = getCenterPosition(conn[1]);
-
         const label = conn[0].dataset.label;
+
         if (label === "L") ctx.strokeStyle = "red";
         else if (label === "N") ctx.strokeStyle = "blue";
         else if (label === "G") ctx.strokeStyle = "green";
@@ -161,19 +150,17 @@
 
     document.querySelectorAll('.point').forEach(point => {
       point.addEventListener('click', () => {
+        clickSound.play();
         if (!firstClick) {
           firstClick = point;
           point.style.backgroundColor = "#f39c12";
         } else {
-          if (
-            firstClick.dataset.side !== point.dataset.side &&
-            firstClick.dataset.label === point.dataset.label
-          ) {
+          if (firstClick.dataset.side !== point.dataset.side && firstClick.dataset.label === point.dataset.label) {
             connections.push([firstClick, point]);
             firstClick.style.backgroundColor = "#95a5a6";
             drawLines();
           } else {
-            alert("Sambungan harus antara sumber dan meteran, dan label harus sama!");
+            alert("Sambungan harus dari sumber ke meteran dan label harus sama!");
             firstClick.style.backgroundColor = "#95a5a6";
           }
           firstClick = null;
@@ -188,6 +175,7 @@
       });
       drawLines();
       document.getElementById("lampu-status").style.backgroundColor = "gray";
+      document.getElementById("lampu-status").style.boxShadow = "none";
     }
 
     function validateConnections() {
@@ -196,14 +184,40 @@
       const valid = required.every(label => connectedLabels.includes(label));
 
       if (valid) {
-        alert("✅ Semua sambungan sudah benar! Listrik menyala.");
+        alert("✅ Semua sambungan benar! Listrik menyala.");
         document.getElementById("lampu-status").style.backgroundColor = "yellow";
         document.getElementById("lampu-status").style.boxShadow = "0 0 25px yellow";
       } else {
-        alert("❌ Sambungan belum lengkap atau ada yang salah.");
-        document.getElementById("lampu-status").style.backgroundColor = "gray";
-        document.getElementById("lampu-status").style.boxShadow = "none";
+        alert("❌ Sambungan belum lengkap atau salah.");
+        document.getElementById("lampu-status").style.backgroundColor = "red";
+        document.getElementById("lampu-status").style.boxShadow = "0 0 15px red";
       }
+    }
+
+    function startQuiz() {
+      quizMode = true;
+      currentTarget = "L";
+      alert("🎯 Mode Latihan: Sambungkan kabel L saja.");
+    }
+
+    function validateQuizConnection() {
+      const labels = connections.map(conn => conn[0].dataset.label);
+      if (labels.length === 1 && labels[0] === currentTarget) {
+        alert("✅ Benar! Kamu berhasil menyambungkan kabel " + currentTarget);
+        document.getElementById("lampu-status").style.backgroundColor = "green";
+        document.getElementById("lampu-status").style.boxShadow = "0 0 25px green";
+      } else {
+        alert("❌ Salah. Kamu hanya perlu menyambungkan kabel " + currentTarget);
+        document.getElementById("lampu-status").style.backgroundColor = "red";
+        document.getElementById("lampu-status").style.boxShadow = "0 0 15px red";
+      }
+    }
+
+    function startRandomQuiz() {
+      const options = ["L", "N", "G"];
+      currentTarget = options[Math.floor(Math.random() * options.length)];
+      quizMode = true;
+      alert("🎯 Kuis: Sambungkan kabel " + currentTarget);
     }
 
     window.addEventListener('resize', () => {
