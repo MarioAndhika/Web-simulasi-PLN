@@ -50,6 +50,29 @@
       left: 0;
       z-index: -1;
     }
+    #controls {
+      text-align: center;
+      margin-top: 30px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+    #lampu {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .lamp {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: gray;
+      display: inline-block;
+      margin-top: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 <body>
@@ -89,6 +112,16 @@
     <canvas id="canvas"></canvas>
   </div>
 
+  <div id="controls">
+    <button onclick="resetConnections()">🔁 Reset Sambungan</button>
+    <button onclick="validateConnections()">✅ Periksa Sambungan</button>
+  </div>
+
+  <div id="lampu">
+    <p>Lampu Status:</p>
+    <div class="lamp" id="lampu-status"></div>
+  </div>
+
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -114,7 +147,6 @@
         const start = getCenterPosition(conn[0]);
         const end = getCenterPosition(conn[1]);
 
-        // Warna berdasarkan label kabel
         const label = conn[0].dataset.label;
         if (label === "L") ctx.strokeStyle = "red";
         else if (label === "N") ctx.strokeStyle = "blue";
@@ -141,13 +173,38 @@
             firstClick.style.backgroundColor = "#95a5a6";
             drawLines();
           } else {
-            alert("Sambungan harus antara sumber dan meteran, dan label harus sama (L-L, N-N, G-G)");
+            alert("Sambungan harus antara sumber dan meteran, dan label harus sama!");
             firstClick.style.backgroundColor = "#95a5a6";
           }
           firstClick = null;
         }
       });
     });
+
+    function resetConnections() {
+      connections.length = 0;
+      document.querySelectorAll('.point').forEach(p => {
+        p.style.backgroundColor = "#95a5a6";
+      });
+      drawLines();
+      document.getElementById("lampu-status").style.backgroundColor = "gray";
+    }
+
+    function validateConnections() {
+      const required = ["L", "N", "G"];
+      const connectedLabels = connections.map(conn => conn[0].dataset.label);
+      const valid = required.every(label => connectedLabels.includes(label));
+
+      if (valid) {
+        alert("✅ Semua sambungan sudah benar! Listrik menyala.");
+        document.getElementById("lampu-status").style.backgroundColor = "yellow";
+        document.getElementById("lampu-status").style.boxShadow = "0 0 25px yellow";
+      } else {
+        alert("❌ Sambungan belum lengkap atau ada yang salah.");
+        document.getElementById("lampu-status").style.backgroundColor = "gray";
+        document.getElementById("lampu-status").style.boxShadow = "none";
+      }
+    }
 
     window.addEventListener('resize', () => {
       canvas.width = window.innerWidth;
