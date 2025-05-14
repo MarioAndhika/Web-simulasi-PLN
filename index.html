@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Simulasi Penyambungan Kabel ke Meteran PLN</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f3f3;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    #container {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 50px;
+      position: relative;
+    }
+    .panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    .point {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: #95a5a6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      border: 2px solid white;
+    }
+    .label {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Simulasi Penyambungan Kabel ke Meteran PLN</h1>
+
+  <div id="container">
+    <div class="panel" id="source">
+      <div>
+        <div class="point" data-side="source" data-label="L">L</div>
+        <div class="label">Sumber L (Line)</div>
+      </div>
+      <div>
+        <div class="point" data-side="source" data-label="N">N</div>
+        <div class="label">Sumber N (Netral)</div>
+      </div>
+      <div>
+        <div class="point" data-side="source" data-label="G">G</div>
+        <div class="label">Sumber G (Ground)</div>
+      </div>
+    </div>
+
+    <div class="panel" id="meter">
+      <div>
+        <div class="point" data-side="meter" data-label="L">L</div>
+        <div class="label">Meteran L (Line)</div>
+      </div>
+      <div>
+        <div class="point" data-side="meter" data-label="N">N</div>
+        <div class="label">Meteran N (Netral)</div>
+      </div>
+      <div>
+        <div class="point" data-side="meter" data-label="G">G</div>
+        <div class="label">Meteran G (Ground)</div>
+      </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let firstClick = null;
+    const connections = [];
+
+    function getCenterPosition(el) {
+      const rect = el.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+    }
+
+    function drawLines() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.lineWidth = 4;
+
+      connections.forEach(conn => {
+        const start = getCenterPosition(conn[0]);
+        const end = getCenterPosition(conn[1]);
+
+        // Warna berdasarkan label kabel
+        const label = conn[0].dataset.label;
+        if (label === "L") ctx.strokeStyle = "red";
+        else if (label === "N") ctx.strokeStyle = "blue";
+        else if (label === "G") ctx.strokeStyle = "green";
+
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        ctx.lineTo(end.x, end.y);
+        ctx.stroke();
+      });
+    }
+
+    document.querySelectorAll('.point').forEach(point => {
+      point.addEventListener('click', () => {
+        if (!firstClick) {
+          firstClick = point;
+          point.style.backgroundColor = "#f39c12";
+        } else {
+          if (
+            firstClick.dataset.side !== point.dataset.side &&
+            firstClick.dataset.label === point.dataset.label
+          ) {
+            connections.push([firstClick, point]);
+            firstClick.style.backgroundColor = "#95a5a6";
+            drawLines();
+          } else {
+            alert("Sambungan harus antara sumber dan meteran, dan label harus sama (L-L, N-N, G-G)");
+            firstClick.style.backgroundColor = "#95a5a6";
+          }
+          firstClick = null;
+        }
+      });
+    });
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      drawLines();
+    });
+  </script>
+</body>
+</html>
