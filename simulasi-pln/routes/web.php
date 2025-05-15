@@ -14,5 +14,25 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('akhir');
+})->name('akhir');
+
+Route::get('/keamanan', function () {
+    return view('keamanan');
+})->name('keamanan');
+
+Route::get('/keamanan', function () {
+    return view('keamanan');
+})->name('keamanan');
+
+Route::get('/keamanan', function () {
+    return view('keamanan');
+})->name('keamanan');
+
+Route::get('/keamanan', function () {
+    return view('keamanan');
+})->name('keamanan');
+
+Route::get('/keamanan', function () {
+    return view('keamanan');
+})->name('keamanan');
